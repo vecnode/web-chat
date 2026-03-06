@@ -49,7 +49,7 @@ fn main() -> eframe::Result<()> {
 
     let server_enabled_for_app = server_enabled.clone();
     eframe::run_native(
-        "egui-chat",
+        "web-chat",
         options,
         Box::new(move |_cc| {
             let mut app = MyApp::default();

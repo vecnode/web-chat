@@ -1,5 +1,5 @@
 [package]
-name = "egui_chat"
+name = "web-chat"
 description = "A general chat widget for egui"
 version = "0.1.0"
 edition = "2024"

@@ -1138,24 +1138,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "egui_chat"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "eframe",
- "egui",
- "egui_inbox",
- "http-body-util",
- "hyper",
- "hyper-util",
- "reqwest",
- "rfd",
- "rmcp",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "egui_glow"
 version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4506,6 +4488,24 @@ dependencies = [
  "log",
  "once_cell",
  "pkg-config",
+]
+
+[[package]]
+name = "web-chat"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "eframe",
+ "egui",
+ "egui_inbox",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "reqwest",
+ "rfd",
+ "rmcp",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

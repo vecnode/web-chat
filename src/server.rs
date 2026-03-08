@@ -98,8 +98,8 @@ async fn handle_request(
                     // Not valid JSON or different format - treat as plain text
                     // Try to extract sender name if it's a simple format, otherwise use "API"
                     ChatMessage {
-                        content: body_str.to_string(),
-                        from: Some("API".to_string()),
+                content: body_str.to_string(),
+                from: Some("API".to_string()),
                     }
                 }
             };

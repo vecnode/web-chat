@@ -105,34 +105,48 @@ impl eframe::App for MyApp {
                                     ui.separator();
                                     ui.add_space(8.0);
                                     
-                                    // Server Status
-                                    ui.label(egui::RichText::new("Server Status").strong());
-                                    ui.add_space(4.0);
-                                    
-                                    let (status_text, status_color) = match self.server_status {
-                                        ServerStatus::Running => ("● Running", egui::Color32::from_rgb(0, 255, 0)),
-                                        ServerStatus::Stopped => ("● Stopped", egui::Color32::from_rgb(255, 0, 0)),
-                                    };
-                                    
-                                    ui.label(egui::RichText::new(status_text).color(status_color));
-                                    ui.add_space(4.0);
-                                    
-                                    // ON/OFF button
-                                    let is_enabled = *self.server_enabled.lock().unwrap();
-                                    let button_text = if is_enabled { "OFF" } else { "ON" };
-                                    
-                                    if ui.button(button_text).clicked() {
-                                        let mut enabled = self.server_enabled.lock().unwrap();
-                                        *enabled = !*enabled;
-                                        self.server_status = if *enabled {
-                                            ServerStatus::Running
-                                        } else {
-                                            ServerStatus::Stopped
-                                        };
-                                    }
-                                    
-                                    ui.add_space(2.0);
-                                    ui.label(egui::RichText::new("http://127.0.0.1:3000").small().weak());
+                                    // Communication header with green border - 100% width
+                                    let comm_available_width = ui.available_width() - 16.0; // Account for left/right margins
+                                    egui::Frame::default()
+                                        .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgb(0, 255, 0)))
+                                        .inner_margin(egui::Margin { left: 6.0, right: 6.0, top: 6.0, bottom: 6.0 })
+                                        .rounding(4.0)
+                                        .show(ui, |ui| {
+                                            ui.set_width(comm_available_width);
+                                            ui.vertical(|ui| {
+                                                ui.label(egui::RichText::new("Communication").strong());
+                                                ui.add_space(4.0);
+                                                
+                                                // Server Status
+                                                ui.label(egui::RichText::new("Server Status").strong());
+                                                ui.add_space(4.0);
+                                                
+                                                let (status_text, status_color) = match self.server_status {
+                                                    ServerStatus::Running => ("● Running", egui::Color32::from_rgb(0, 255, 0)),
+                                                    ServerStatus::Stopped => ("● Stopped", egui::Color32::from_rgb(255, 0, 0)),
+                                                };
+                                                
+                                                ui.label(egui::RichText::new(status_text).color(status_color));
+                                                ui.add_space(4.0);
+                                                
+                                                // ON/OFF button
+                                                let is_enabled = *self.server_enabled.lock().unwrap();
+                                                let button_text = if is_enabled { "OFF" } else { "ON" };
+                                                
+                                                if ui.button(button_text).clicked() {
+                                                    let mut enabled = self.server_enabled.lock().unwrap();
+                                                    *enabled = !*enabled;
+                                                    self.server_status = if *enabled {
+                                                        ServerStatus::Running
+                                                    } else {
+                                                        ServerStatus::Stopped
+                                                    };
+                                                }
+                                                
+                                                ui.add_space(2.0);
+                                                ui.label(egui::RichText::new("http://127.0.0.1:3000").small().weak());
+                                            });
+                                        });
                                     
                                     // Separator
                                     ui.add_space(8.0);

@@ -138,13 +138,18 @@ impl ChatExample {
                                     let msg_color = if is_message_from_myself {
                                         ui.style().visuals.widgets.inactive.bg_fill
                                     } else {
-                                        // Check for specific message types and apply custom colors
-                                        match item.from.as_deref() {
-                                            Some("System") => egui::Color32::from_rgba_unmultiplied(204, 85, 0, 50), // Dark orange with 50% opacity
-                                            Some("Agent Manager") => egui::Color32::from_rgba_unmultiplied(0, 100, 0, 128), // Dark green with 50% opacity
-                                            _ => ui.style().visuals.extreme_bg_color, // Default black for other messages
-                                        }
+                                        // All messages use black background
+                                        ui.style().visuals.extreme_bg_color
                                     };
+                                    
+                                    // Determine border color for System and Agent Manager messages
+                                    let border_color = match item.from.as_deref() {
+                                        Some("System") => egui::Color32::from_rgb(204, 85, 0), // Dark orange
+                                        Some("Agent Manager") => egui::Color32::from_rgb(0, 100, 0), // Dark green
+                                        _ => egui::Color32::TRANSPARENT, // No border for other messages
+                                    };
+                                    
+                                    let border_width = if border_color != egui::Color32::TRANSPARENT { 2.0 } else { 0.0 };
 
                                     let rounding = 8.0;
                                     let margin = 8.0;
@@ -158,30 +163,22 @@ impl ChatExample {
                                     
                                     // Calculate available width for content (accounting for margins)
                                     let content_max_width = max_msg_width - margin * 2.0;
+
+                                    
                                     
                                     Frame::default()
                                         .inner_margin(margin)
                                         .outer_margin(outer_margin)
                                         .fill(msg_color)
                                         .rounding(rounding)
+                                        .stroke(egui::Stroke::new(border_width, border_color))
                                         .show(ui, |ui| {
                                             // All messages can use full width, text will wrap naturally
                                             ui.set_max_width(content_max_width);
                                             ui.with_layout(Layout::top_down(Align::Min), |ui| {
-                                                // Determine text color based on message type
-                                                let is_system_or_agent = matches!(item.from.as_deref(), Some("System") | Some("Agent Manager"));
-                                                let header_color = if is_system_or_agent {
-                                                    egui::Color32::BLACK
-                                                } else {
-                                                    egui::Color32::WHITE
-                                                };
-                                                let content_color = if is_system_or_agent {
-                                                    egui::Color32::from_rgba_unmultiplied(30, 30, 30, 255)
-                                                    //egui::Color32::DARK_GRAY
-                                                } else {
-                                                    egui::Color32::from_rgba_unmultiplied(150, 150,  150, 255)
-                                                    //egui::Color32::WHITE
-                                                };
+                                                // All messages use the same text colors (white header, gray content)
+                                                let header_color = egui::Color32::WHITE;
+                                                let content_color = egui::Color32::from_rgba_unmultiplied(150, 150, 150, 255);
                                                 
                                                 if let Some(from) = &item.from {
                                                     // For Ollama messages, show "Ollama" in white and model name in gray

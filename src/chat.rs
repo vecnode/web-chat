@@ -93,6 +93,27 @@ impl ChatExample {
         &self.waiting_for_response
     }
 
+    pub fn export_rows(&self) -> Vec<(String, String, String)> {
+        self.messages
+            .iter()
+            .enumerate()
+            .map(|(idx, msg)| {
+                let ts = self
+                    .message_timestamps
+                    .get(idx)
+                    .cloned()
+                    .unwrap_or_else(|| "--:--:--".to_string());
+                let from = msg.from.clone().unwrap_or_else(|| "Unknown".to_string());
+                (ts, from, msg.content.clone())
+            })
+            .collect()
+    }
+
+    pub fn clear_messages(&mut self) {
+        self.messages.clear();
+        self.message_timestamps.clear();
+    }
+
     pub fn ui(&mut self, ui: &mut Ui) {
         // Read incoming messages from inbox
         self.inbox.read(ui).for_each(|message| {

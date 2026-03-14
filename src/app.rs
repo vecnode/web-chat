@@ -19,6 +19,8 @@ pub struct MyApp {
     ollama_token_limit_enabled: bool,
     chat_token_limit: i32,
     chat_token_limit_enabled: bool,
+    chat_use_mode: ChatUseMode,
+    download_chat_format: DownloadChatFormat,
     pub mcp: MCPController,
     left_column_tab: LeftColumnTab,
 }
@@ -34,6 +36,20 @@ enum LeftColumnTab {
     #[default]
     General,
     About,
+}
+
+#[derive(Clone, Copy, PartialEq, Default)]
+enum DownloadChatFormat {
+    #[default]
+    Json,
+    Csv,
+}
+
+#[derive(Clone, Copy, PartialEq, Default)]
+enum ChatUseMode {
+    #[default]
+    HumanAi,
+    AiAi,
 }
 
 impl Default for MyApp {
@@ -60,6 +76,8 @@ impl Default for MyApp {
             ollama_token_limit_enabled: false,
             chat_token_limit: 70,
             chat_token_limit_enabled: false,
+            chat_use_mode: ChatUseMode::default(),
+            download_chat_format: DownloadChatFormat::default(),
             mcp,
             left_column_tab: LeftColumnTab::default(),
         }
@@ -120,6 +138,29 @@ impl eframe::App for MyApp {
                                     ui.vertical(|ui| {
                                         ui.label(egui::RichText::new("Chat Settings").strong());
                                         ui.add_space(4.0);
+                                        ui.horizontal(|ui| {
+                                            if ui
+                                                .selectable_label(
+                                                    self.chat_use_mode == ChatUseMode::HumanAi,
+                                                    "Human-Agent",
+                                                )
+                                                .clicked()
+                                            {
+                                                self.chat_use_mode = ChatUseMode::HumanAi;
+                                                println!("Selected mode: Human-Agent");
+                                            }
+                                            if ui
+                                                .selectable_label(
+                                                    self.chat_use_mode == ChatUseMode::AiAi,
+                                                    "Agent-Agent",
+                                                )
+                                                .clicked()
+                                            {
+                                                self.chat_use_mode = ChatUseMode::AiAi;
+                                                println!("Selected mode: Agent-Agent");
+                                            }
+                                        });
+                                        ui.add_space(4.0);
                                         let ollama_models = self.ollama.models();
                                         let ollama_status_chat = self.ollama.status();
                                         if ollama_status_chat == OllamaStatus::Running && !ollama_models.is_empty() {
@@ -152,6 +193,72 @@ impl eframe::App for MyApp {
                                                 );
                                             }
                                         });
+                                        ui.add_space(4.0);
+                                        //ui.label(egui::RichText::new("Download Chat").small());
+                                        ui.horizontal(|ui| {
+                                            egui::ComboBox::from_id_source("download_chat_format")
+                                                .selected_text(match self.download_chat_format {
+                                                    DownloadChatFormat::Json => "JSON",
+                                                    DownloadChatFormat::Csv => "CSV",
+                                                })
+                                                .show_ui(ui, |ui| {
+                                                    ui.selectable_value(
+                                                        &mut self.download_chat_format,
+                                                        DownloadChatFormat::Json,
+                                                        "JSON",
+                                                    );
+                                                    ui.selectable_value(
+                                                        &mut self.download_chat_format,
+                                                        DownloadChatFormat::Csv,
+                                                        "CSV",
+                                                    );
+                                                });
+
+                                            if ui.button("Download").clicked() {
+                                                let rows = self.chat.export_rows();
+                                                let (content, default_name) = match self.download_chat_format {
+                                                    DownloadChatFormat::Json => {
+                                                        let data: Vec<serde_json::Value> = rows
+                                                            .into_iter()
+                                                            .map(|(timestamp, from, content)| {
+                                                                serde_json::json!({
+                                                                    "timestamp": timestamp,
+                                                                    "from": from,
+                                                                    "content": content
+                                                                })
+                                                            })
+                                                            .collect();
+                                                        (
+                                                            serde_json::to_string_pretty(&data).unwrap_or_else(|_| "[]".to_string()),
+                                                            "chat-export.json",
+                                                        )
+                                                    }
+                                                    DownloadChatFormat::Csv => {
+                                                        let mut csv = String::from("timestamp,from,content\n");
+                                                        for (timestamp, from, content) in rows {
+                                                            let esc = |s: &str| format!("\"{}\"", s.replace('\"', "\"\""));
+                                                            csv.push_str(
+                                                                &format!("{},{},{}\n", esc(&timestamp), esc(&from), esc(&content)),
+                                                            );
+                                                        }
+                                                        (csv, "chat-export.csv")
+                                                    }
+                                                };
+
+                                                if let Some(path) = rfd::FileDialog::new()
+                                                    .set_file_name(default_name)
+                                                    .save_file()
+                                                {
+                                                    if let Err(err) = std::fs::write(path, content) {
+                                                        eprintln!("Failed to save chat export: {err}");
+                                                    }
+                                                }
+                                            }
+                                        });
+                                        ui.add_space(4.0);
+                                        if ui.button("Clear Chat").clicked() {
+                                            self.chat.clear_messages();
+                                        }
                                     });
                                 });
                             ui.add_space(8.0);
